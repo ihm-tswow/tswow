@@ -1080,7 +1080,28 @@ declare interface TSPlayer extends TSUnit {
      *
      * @return [LocaleConstant] locale
      */
-    GetDbcLocale() : uint32
+    GetDbcLocale(): uint32
+
+    /**
+     * refresh item's stats on player
+     *
+     * @param uint32 itemID
+     */
+    ApplyItemMods(itemID: uint32): void
+
+    /**
+     * refresh item's stats from custom template stats
+     *
+     * @param TSItemTemplate newStats
+     */
+    ApplyCustomItemMods(newItem: TSItemTemplate): void
+
+    /**
+     * Applies all custom item cache to player
+     *
+     * 
+     */
+    UpdateCache(): void
 
     /**
      * Locks the player controls and disallows all movement and casting.
@@ -1385,7 +1406,14 @@ declare interface TSPlayer extends TSUnit {
      *
      * @param [Number] entry
      */
-    SendItemQueryPacket(entry : number) : void
+    SendItemQueryPacket(entry: number): void
+
+    /**
+     * Sends a [Item] cache packet to the [Player] from the [ItemTemplate] specified
+     *
+     * @param [TSItemTemplate] template
+     */
+    SendItemQueryPacketWithTemplate(item: TSItemTemplate): void
 
     /**
      * Sends a spirit resurrection request to the [Player]
@@ -2387,6 +2415,7 @@ declare interface TSOutfit {
     GetGender(): Gender;
     GetRace(): uint8;
     GetDisplayID(): uint32;
+    SetDisplayID(displayID: uint32): void;
 
     SetMainhand(mainhand: uint32): TSOutfit
     SetOffhand(offhand: uint32): TSOutfit
@@ -4077,6 +4106,8 @@ declare class TSItem extends TSObject {
     //GetItemLink(locale : uint8) : string
 
     GetTemplate(): TSItemTemplate
+    GetTemplateCopy(): TSItemTemplate
+
     GetOwnerGUID() : uint64
 
     /**
@@ -6877,6 +6908,40 @@ declare interface TSItemTemplate extends TSEntityProvider {
     GetIsArmorVellum(): bool
     GetIsConjuredConsumable(): bool
     GetHasSignature(): bool;
+
+    SetBlock(block: int32): void
+    SetDuration(duration: uint32): void
+    SetMaterial(materialID: uint32): void
+    SetDescription(description: TSString): void
+    SetHolyRes(value: int32): void
+    SetFireRes(value: int32): void
+    SetNatureRes(value: int32): void
+    SetFrostRes(value: int32): void
+    SetShadowRes(value: int32): void
+    SetArcaneRes(value: int32): void
+    SetRequiredLevel(level: uint32): void
+    SetName(name: TSString): void
+    SetSheath(sheath: uint32): void
+    SetDelay(delay: uint32): void
+    SetInventoryType(invType: uint32): void
+    SetDisplayInfoID(displayID: uint32): void
+    SetClass(classID: uint32): void
+    SetSubClass(subclass: uint32): void
+    SetItemLevel(ilevel: uint32): void
+    SetArmor(armor: int32): void
+    SetQuality(quality: int32): void
+    SetEntry(entry: uint32): void
+    SetStatType(index: uint32, type: uint32): void
+    SetStatValue(index: uint32, value: int32): void
+    SetDamageMinA(value: float): void
+    SetDamageMinB(value: float): void
+    SetDamageMaxA(value: float): void
+    SetDamageMaxB(value: float): void
+    SetDamageTypeA(value: uint32): void
+    SetDamageTypeB(value: uint32): void
+    SetStatCount(value: uint32): void
+
+    SaveItemTemplate(): void
 }
 
 declare interface TSSpellInfo extends TSEntityProvider {
@@ -8713,6 +8778,11 @@ declare function IsHolidayActive(holiday: uint16): boolean
 declare function GetActiveGameEvents(): TSArray<uint16>
 declare function StartGameEvent(event_id: uint16): void
 declare function StopGameEvent(event_id: uint16): void
+
+declare function ReloadItemTemplate(): void;
+declare function ReloadSingleItemTemplate(itemID: string): void;
+declare function ReloadSingleItemTemplateObject(item: TSItemTemplate): void;
+declare function LoadCustomItems(): void;
 // end of Global.h
 
 declare function CreateDictionary<K,V>(obj: {[key: string]: V}) : TSDictionary<K,V>

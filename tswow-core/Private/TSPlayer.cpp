@@ -1472,6 +1472,43 @@ uint32 TSPlayer::GetDbcLocale()
     return ChatHandler(player->GetSession()).GetNearbyGameObject();
 }*/
 
+void TSPlayer::ApplyItemMods(uint32 itemID)
+{
+#if TRINITY
+   player->_RemoveAllItemMods();
+   sObjectMgr->LoadSingleItemTemplate(std::to_string(itemID));
+   player->_ApplyAllItemMods();
+#elif AZEROTHCORE
+    TS_LOG_ERROR("tswow.api", "TSPlayer::ApplyItemMods not implemented for AzerothCore");
+#endif
+}
+
+void TSPlayer::ApplyCustomItemMods(TSItemTemplate newItem)
+{
+#if TRINITY
+    player->_RemoveAllItemMods();
+    sObjectMgr->LoadSingleItemTemplateObject(newItem->_GetInfo());
+    player->_ApplyAllItemMods();
+#elif AZEROTHCORE
+    TS_LOG_ERROR("tswow.api", "TSPlayer::ApplyCustomItemMods not implemented for AzerothCore");
+#endif    
+}
+
+void TSPlayer::UpdateCache()
+{
+    #if TRINITY
+    QueryResult result = CharacterDatabase.PQuery("SELECT * FROM custom_item_stats");
+    do
+    {
+        Field* fields = result->Fetch();
+        const ItemTemplate* itemTemplate = sObjectMgr->GetItemTemplate(fields[0].GetUInt32());
+        SendItemQueryPacketWithTemplate(itemTemplate);
+    } while (result->NextRow());
+    #elif AZEROTHCORE
+        TS_LOG_ERROR("tswow.api", "TSPlayer::UpdateCache not implemented for AzerothCore");
+    #endif
+}
+
 /**
  * Locks the player controls and disallows all movement and casting.
  *
@@ -2090,6 +2127,17 @@ void TSPlayer::SendItemQueryPacket(uint32 entry)
     TS_LOG_ERROR("tswow.api", "TSPlayer::SendItemQueryPacket not implemented for AzerothCore");
 #endif
 }
+
+void TSPlayer::SendItemQueryPacketWithTemplate(TSItemTemplate curItem)
+{
+#if TRINITY
+    WorldPacket response = curItem->BuildCustomQueryData(0);
+    player->GetSession()->SendPacket(&response);
+#elif AZEROTHCORE
+    TS_LOG_ERROR("tswow.api", "TSPlayer::SendItemQueryPacketWithTemplate not implemented for AzerothCore");
+#endif
+}
+
 /**
  * Sends a spirit resurrection request to the [Player]
  */
@@ -4036,26 +4084,46 @@ TSOutfit TSPlayer::GetOutfitCopy(uint32_t settings, int32_t race, int32_t gender
 
 bool TSPlayer::CanBeTank()
 {
+#if TRINITY
     return sObjectMgr->GetPlayerClassRoleMask(GetClass())
         & lfg::LfgRoles::PLAYER_ROLE_TANK;
+#elif AZEROTHCORE
+    TS_LOG_ERROR("tswow.api", "TSPlayer::CanBeTank not implemented for AzerothCore");
+    return false;
+#endif
 }
 
 bool TSPlayer::CanBeHealer()
 {
+#if TRINITY
     return sObjectMgr->GetPlayerClassRoleMask(GetClass())
         & lfg::LfgRoles::PLAYER_ROLE_HEALER;
+#elif AZEROTHCORE
+    TS_LOG_ERROR("tswow.api", "TSPlayer::CanBeHealer not implemented for AzerothCore");
+    return false;
+#endif
 }
 
 bool TSPlayer::CanBeDPS()
 {
+#if TRINITY
     return sObjectMgr->GetPlayerClassRoleMask(GetClass())
         & lfg::LfgRoles::PLAYER_ROLE_DAMAGE;
+#elif AZEROTHCORE
+    TS_LOG_ERROR("tswow.api", "TSPlayer::CanBeDPS not implemented for AzerothCore");
+    return false;
+#endif
 }
 
 bool TSPlayer::CanBeLeader()
 {
+#if TRINITY
     return sObjectMgr->GetPlayerClassRoleMask(GetClass())
         & lfg::LfgRoles::PLAYER_ROLE_LEADER;
+#elif AZEROTHCORE
+    TS_LOG_ERROR("tswow.api", "TSPlayer::CanBeLeader not implemented for AzerothCore");
+    return false;
+#endif
 }
 
 /*int TSPlayer::BindToInstance(lua_State* L, Player* player)
