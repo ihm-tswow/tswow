@@ -4,7 +4,7 @@ on:
     branches: [ "master", "stdlib-merge" ]
   workflow_dispatch:
 jobs:
-  ubuntu-20-clang:
+  ubuntu-clang:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
