@@ -8,8 +8,8 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - name: Fix mariadb
-        run: sudo apt remove mariadb-server mariadb-server-10.3 mariadb-server-core-10.3
+      - name: Remove MySQL
+        run: sudo apt-get remove --purge mysql-common
       - name: Install submodules
         run: git submodule update --init --recursive
       - name: Install deps
