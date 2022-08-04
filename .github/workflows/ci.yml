@@ -15,7 +15,7 @@ jobs:
         id: install-boost
         uses: MarkusJx/install-boost@v2.3.0
         with:
-          boost_version: 1.77.0
+          boost_version: 1.79.0
       - name: Build tswow
         shell: bash
         run: npm run build noac BOOST_ROOT=${{ steps.install-boost.outputs.BOOST_ROOT }}
