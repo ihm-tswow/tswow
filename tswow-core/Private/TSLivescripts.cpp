@@ -33,12 +33,12 @@ struct TSLibrary
 
 static std::map<fs::path, TSLibrary> libraries;
 
-void TSLivescripts::Load(std::string const& buildType)
+void TSLivescripts::Load()
 {
 #if AZEROTHCORE
-    fs::path libPath = fs::path(sConfigMgr->GetOption<std::string>("DataDir", "./")) / "lib" / buildType;
+    fs::path libPath = fs::path(sConfigMgr->GetOption<std::string>("DataDir", "./")) / "lib" / CMAKE_INTDIR;
 #elif TRINITY
-    fs::path libPath = fs::path(sConfigMgr->GetStringDefault("DataDir", "./")) / "lib" / buildType;
+    fs::path libPath = fs::path(sConfigMgr->GetStringDefault("DataDir", "./")) / "lib" / CMAKE_INTDIR;
 #endif
     // Unload libraries
     for(auto & [path,lib] : libraries)
