@@ -25,7 +25,7 @@
 #include "TSSpellInfo.h"
 #include "TSUnit.h"
 
-TS_CLASS_DEFINITION(TSAuraEffect, AuraEffect, aura)
+TS_CLASS_DEFINITION_ENTITY_PROVIDER(TSAuraEffect, AuraEffect, aura)
 
 TSUnit TSAuraEffect::GetCaster()
 {
@@ -132,7 +132,7 @@ bool TSAuraEffect::IsPeriodic()
     return aura->IsPeriodic();
 }
 
-TS_CLASS_DEFINITION(TSAuraApplication, AuraApplication, aura)
+TS_CLASS_DEFINITION_ENTITY_PROVIDER(TSAuraApplication, AuraApplication, aura)
 
 TSUnit TSAuraApplication::GetTarget()
 {
