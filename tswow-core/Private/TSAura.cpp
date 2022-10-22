@@ -188,13 +188,15 @@ TSNumber<uint8> TSAuraApplication::GetRemoveMode()
 // =============
 
 TSAura::TSAura(Aura *aura)
+    : TSEntityProvider(&aura->m_tsEntity)
+    , aura(aura)
 {
-    this->aura = aura;
 }
 
 TSAura::TSAura()
+    : TSEntityProvider(nullptr)
+    , aura(nullptr)
 {
-    this->aura = nullptr;
 }
 
 TSArray<TSAuraApplication> TSAura::GetApplications()
