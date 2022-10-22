@@ -63,7 +63,7 @@ void TSLivescripts::Load()
         std::string modName = file.filename().string();
         modName = modName.substr(0, modName.find_last_of("."));
 
-        fs::path realmLibDir = fs::current_path() / "lib" / buildType;
+        fs::path realmLibDir = fs::current_path() / "lib" / CMAKE_INTDIR;
         fs::path pdbPathIn = file.parent_path() / (modName + ".pdb");
         fs::path libPathOut = realmLibDir / (modName + DL_EXT);
         fs::path pdbPathOut = realmLibDir / (modName + ".pdb");
