@@ -16,10 +16,10 @@
 /* tslint:disable */
 import { int, mediumint, text, tinyint } from '../../data/primitives'
 import { Relation } from '../../data/query/Relations'
-import { PrimaryKey } from '../../data/table/PrimaryKey'
 import { SQLCell, SQLCellReadOnly } from '../../data/sql/SQLCell'
 import { SqlRow } from '../../data/sql/SQLRow'
 import { SqlTable } from '../../data/sql/SQLTable'
+import { PrimaryKey } from '../../data/table/PrimaryKey'
 
  /**
   * Main row definition
@@ -53,12 +53,27 @@ export class creature_template_addonRow extends SqlRow<creature_template_addonCr
     /**
      * No comment (yet!)
      */
-    get bytes1() {return new SQLCell<int, this>(this, 'bytes1')}
+    get StandState() { return new SQLCell<int,this>(this,'StandState')}
 
-    /**
-     * No comment (yet!)
-     */
-    get bytes2() {return new SQLCell<int, this>(this, 'bytes2')}
+     /**
+      * No comment (yet!)
+      */
+    get AnimTier() { return new SQLCell<int,this>(this,'AnimTier')}
+ 
+     /**
+      * No comment (yet!)
+      */
+    get VisFlags() { return new SQLCell<int,this>(this,'VisFlags')}
+ 
+     /**
+      * No comment (yet!)
+      */
+    get SheathState() { return new SQLCell<int,this>(this,'SheathState')}
+ 
+     /**
+      * No comment (yet!)
+      */
+    get PvPFlags() { return new SQLCell<int,this>(this,'PvPFlags')}
 
     /**
      * No comment (yet!)
