@@ -1,6 +1,7 @@
 #include "TSLua.h"
 #include "TSLuaVarargs.h"
 #include "TSUnit.h"
+#include "TSGUID.h"
 
 #include "TSPlayer.h"
 #include "TSAura.h"
@@ -51,10 +52,11 @@ void TSLua::load_unit_methods(sol::state& state)
     LUA_FIELD(ts_unit, TSUnit, IsQuestGiver);
     LUA_FIELD(ts_unit, TSUnit, HealthBelowPct);
     LUA_FIELD(ts_unit, TSUnit, HealthAbovePct);
-    LUA_FIELD_OVERLOAD_RET_1_3(ts_unit, TSUnit, HasAura, uint32, uint64, uint64, uint8);
+    LUA_FIELD_OVERLOAD_RET_1_3(ts_unit, TSUnit, HasAura, uint32, TSGUID, TSGUID, uint8);
     LUA_FIELD(ts_unit, TSUnit, HasAuraType);
     LUA_FIELD(ts_unit, TSUnit, IsCasting);
     LUA_FIELD(ts_unit, TSUnit, HasUnitState);
+    LUA_FIELD(ts_unit, TSUnit, HasUnitMovementFlag);
     LUA_FIELD(ts_unit, TSUnit, GetOwner);
     LUA_FIELD(ts_unit, TSUnit, GetOwnerGUID);
     LUA_FIELD(ts_unit, TSUnit, GetMountID);
@@ -90,10 +92,10 @@ void TSLua::load_unit_methods(sol::state& state)
     LUA_FIELD(ts_unit, TSUnit, GetClassAsString);
     LUA_FIELD(ts_unit, TSUnit, GetRaceAsString);
     LUA_FIELD(ts_unit, TSUnit, GetFaction);
-    LUA_FIELD_OVERLOAD_RET_1_3(ts_unit, TSUnit, GetAura, uint32, uint64, uint64, uint8);
-    LUA_FIELD_OVERLOAD_RET_1_3(ts_unit, TSUnit, GetAuraOfRankedSpell, uint32, uint64, uint64, uint8);
-    LUA_FIELD_OVERLOAD_RET_1_4(ts_unit, TSUnit, GetAuraApplication, uint32, uint64, uint64, uint8, TSAuraApplication);
-    LUA_FIELD_OVERLOAD_RET_1_4(ts_unit, TSUnit, GetAuraApplicationOfRankedSpell, uint32, uint64, uint64, uint8, TSAuraApplication);
+    LUA_FIELD_OVERLOAD_RET_1_3(ts_unit, TSUnit, GetAura, uint32, TSGUID, TSGUID, uint8);
+    LUA_FIELD_OVERLOAD_RET_1_3(ts_unit, TSUnit, GetAuraOfRankedSpell, uint32, TSGUID, TSGUID, uint8);
+    LUA_FIELD_OVERLOAD_RET_1_4(ts_unit, TSUnit, GetAuraApplication, uint32, TSGUID, TSGUID, uint8, TSAuraApplication);
+    LUA_FIELD_OVERLOAD_RET_1_4(ts_unit, TSUnit, GetAuraApplicationOfRankedSpell, uint32, TSGUID, TSGUID, uint8, TSAuraApplication);
     ts_unit.set_function("GetAuraApplications", [](TSUnit& unit) {
         TSArray<TSAuraApplication> apps = unit.GetAuraApplications();
         return sol::as_table(*apps.vec);
@@ -178,7 +180,6 @@ void TSLua::load_unit_methods(sol::state& state)
     LUA_FIELD(ts_unit, TSUnit, SendUnitSay);
     LUA_FIELD(ts_unit, TSUnit, SendUnitYell);
     LUA_FIELD(ts_unit, TSUnit, DeMorph);
-    LUA_FIELD(ts_unit, TSUnit, CastCustomSpell);
     LUA_FIELD(ts_unit, TSUnit, ClearInCombat);
     LUA_FIELD(ts_unit, TSUnit, StopSpellCast);
     LUA_FIELD(ts_unit, TSUnit, InterruptSpell);

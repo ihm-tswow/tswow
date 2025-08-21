@@ -20,6 +20,7 @@
 #include "TSMain.h"
 #include "TSClasses.h"
 #include "TSWorldObject.h"
+#include "TSLua.h"
 
 class TSGameObjectTemplate;
 
@@ -35,6 +36,7 @@ public:
     bool IsTransport();
     bool IsActive();
     TSNumber<uint32> GetDisplayID();
+    TSGUID GetOwnerGUID();
     TSNumber<uint32> GetGoState();
     TSNumber<uint32> GetLootState();
     TSPlayer GetLootRecipient();
@@ -53,3 +55,5 @@ public:
     bool IsAIEnabled();
     TSGameObjectTemplate GetTemplate();
 };
+
+LUA_PTR_TYPE(TSGameObject)

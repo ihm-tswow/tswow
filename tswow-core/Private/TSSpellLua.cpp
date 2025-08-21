@@ -1,5 +1,6 @@
 #include "TSLua.h"
 #include "TSSpell.h"
+#include "TSGUID.h"
 
 void TSLua::load_spell_methods(sol::state& state)
 {
@@ -11,6 +12,7 @@ void TSLua::load_spell_methods(sol::state& state)
     LUA_FIELD(ts_spell, TSSpell, GetCastTime);
     LUA_FIELD(ts_spell, TSSpell, GetEntry);
     LUA_FIELD(ts_spell, TSSpell, GetGlyphSlot);
+    LUA_FIELD(ts_spell, TSSpell, GetState);
     LUA_FIELD(ts_spell, TSSpell, GetPowerCost);
     LUA_FIELD(ts_spell, TSSpell, GetDuration);
     LUA_FIELD(ts_spell, TSSpell, GetTargetDest);
@@ -20,6 +22,12 @@ void TSLua::load_spell_methods(sol::state& state)
     LUA_FIELD(ts_spell, TSSpell, Cast);
     LUA_FIELD(ts_spell, TSSpell, Cancel);
     LUA_FIELD(ts_spell, TSSpell, Finish);
+
+    LUA_FIELD(ts_spell, TSSpell, GetBasePoints);
+    LUA_FIELD(ts_spell, TSSpell, GetMaxAffectedTargetsOverride);
+    LUA_FIELD(ts_spell, TSSpell, GetRadiusModOverride);
+    LUA_FIELD(ts_spell, TSSpell, GetAuraStackAmountOverride);
+    LUA_FIELD(ts_spell, TSSpell, GetCritChanceOverride);
 
     auto ts_spell_destination = state.new_usertype<TSSpellDestination>("TSSpellDestination");
     LUA_FIELD(ts_spell_destination, TSSpellDestination, GetX);

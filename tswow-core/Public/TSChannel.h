@@ -18,9 +18,12 @@
 
 #include "TSMain.h"
 #include "TSClasses.h"
+#include "TSLua.h"
 
 #include <sol/sol.hpp>
 #include <vector>
+
+class TSGUID;
 
 class TC_GAME_API TSChannel {
 public:
@@ -45,6 +48,17 @@ public:
     void JoinChannel(TSPlayer player, std::string const& password = "");
     void LeaveChannel(TSPlayer player, bool send = true);
     void SetInvisible(TSPlayer player, bool on);
-    void SetOwner(uint64 guid, bool exclaim = true);
-    void Say(uint64 guid, std::string const& what, uint32 lang);
+    void SetOwner(TSGUID guid, bool exclaim = true);
+    void SetOwner(TSNumber<uint32> guid, bool exclaim = true);
+    void Say(TSGUID guid, std::string const& what, uint32 lang);
+    void Say(TSNumber<uint32> guid, std::string const& what, uint32 lang);
+private:
+    friend class TSLua;
+
+    void LSetOwner0(TSGUID guid, bool exclaim = true);
+    void LSetOwner1(TSNumber<uint32> guid, bool exclaim = true);
+    void LSay0(TSGUID guid, std::string const& what, uint32 lang);
+    void LSay1(TSNumber<uint32> guid, std::string const& what, uint32 lang);
 };
+
+LUA_PTR_TYPE(TSChannel)

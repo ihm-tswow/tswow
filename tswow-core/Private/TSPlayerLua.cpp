@@ -23,6 +23,7 @@
 #include "TSSpell.h"
 #include "TSGameObject.h"
 #include "TSItemEntry.h"
+#include "TSGUID.h"
 
 void TSLua::load_player_methods(sol::state& state)
 {
@@ -74,6 +75,8 @@ void TSLua::load_player_methods(sol::state& state)
     LUA_FIELD(ts_player, TSPlayer, InBG);
     LUA_FIELD(ts_player, TSPlayer, CanBlock);
     LUA_FIELD(ts_player, TSPlayer, CanParry);
+    LUA_FIELD(ts_player, TSPlayer, IsInHostileArea);
+    LUA_FIELD(ts_player, TSPlayer, IsInNoPvPArea);
     LUA_FIELD(ts_player, TSPlayer, GetSpecsCount);
     LUA_FIELD(ts_player, TSPlayer, GetActiveSpec);
     LUA_FIELD(ts_player, TSPlayer, GetPhaseMaskForSpawn);
@@ -119,7 +122,6 @@ void TSLua::load_player_methods(sol::state& state)
     LUA_FIELD(ts_player, TSPlayer, SetBankBagSlotCount);
     LUA_FIELD(ts_player, TSPlayer, GetItemByPos);
     LUA_FIELD(ts_player, TSPlayer, GetItemByEntry);
-    LUA_FIELD(ts_player, TSPlayer, GetItemByGUID);
     LUA_FIELD(ts_player, TSPlayer, GetGossipTextID);
     LUA_FIELD(ts_player, TSPlayer, GetSelection);
     LUA_FIELD(ts_player, TSPlayer, GetGlobalSelection);
@@ -170,7 +172,8 @@ void TSLua::load_player_methods(sol::state& state)
     LUA_FIELD(ts_player, TSPlayer, SetKnownTitle);
     LUA_FIELD(ts_player, TSPlayer, ResetPetTalents);
     LUA_FIELD(ts_player, TSPlayer, ResetAchievements);
-    LUA_FIELD(ts_player, TSPlayer, SendShowMailBox);
+    ts_player.set_function("GetItemByGUID", sol::overload( &TSPlayer::LGetItemByGUID0, &TSPlayer::LGetItemByGUID1 ));
+    ts_player.set_function("SendShowMailBox", sol::overload( &TSPlayer::LSendShowMailBox0, &TSPlayer::LSendShowMailBox1 ));
     LUA_FIELD(ts_player, TSPlayer, ModifyArenaPoints);
     LUA_FIELD(ts_player, TSPlayer, ModifyHonorPoints);
     LUA_FIELD(ts_player, TSPlayer, SaveToDB);
@@ -284,8 +287,8 @@ void TSLua::load_player_methods(sol::state& state)
     LUA_FIELD(ts_player, TSPlayer, TextEmote);
     LUA_FIELD(ts_player, TSPlayer, Yell);
     LUA_FIELD(ts_player, TSPlayer, Say);
-    LUA_FIELD_OVERLOAD_2_1(ts_player, TSPlayer, AddItem, uint32, uint32, int32);
-    LUA_FIELD_OVERLOAD_4_1(ts_player, TSPlayer, AddItemToSlotRaw, uint8, uint8, uint32, uint32, int32);
+    LUA_FIELD_OVERLOAD_RET_2_1(ts_player, TSPlayer, AddItem, uint32, uint32, int32);
+    LUA_FIELD_OVERLOAD_RET_4_1(ts_player, TSPlayer, AddItemToSlotRaw, uint8, uint8, uint32, uint32, int32);
     LUA_FIELD_OVERLOAD_1_1(ts_player, TSPlayer, RemoveItem, TSItem, uint32);
     LUA_FIELD_OVERLOAD_1_1(ts_player, TSPlayer, RemoveItemByEntry, uint32, uint32);
     LUA_FIELD(ts_player, TSPlayer, SendBroadcastMessage);
@@ -300,8 +303,19 @@ void TSLua::load_player_methods(sol::state& state)
     LUA_FIELD_OVERLOAD_3_8(ts_player, TSPlayer, GossipSendTextMenuGendered, TSObject, std::string const&, std::string const&, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32);
     LUA_FIELD(ts_player, TSPlayer, GossipSendPOI);
     LUA_FIELD_OVERLOAD_RET_0_3(ts_player, TSPlayer, GetOutfitCopy, uint32_t, int32_t, int32_t);
+    LUA_FIELD(ts_player, TSPlayer, HasRunes);
+    LUA_FIELD(ts_player, TSPlayer, SetBaseRune);
+    LUA_FIELD(ts_player, TSPlayer, RestoreBaseRune);
+    LUA_FIELD(ts_player, TSPlayer, ConvertRune);
+    LUA_FIELD(ts_player, TSPlayer, SetRuneCooldown);
+    LUA_FIELD(ts_player, TSPlayer, ResyncRunes);
     ts_player.set_function("GetSpellMap", &TSPlayer::LGetSpellMap);
 
+    ts_player.set_function("EquipItem", sol::overload(
+        [](TSPlayer& player, TSItem item, uint32 slot) { return player.EquipItem(item,slot); },
+        [](TSPlayer& player, uint32 entry, uint32 slot) { return player.EquipItem(entry,slot); }
+    ));
+    
     ts_player.set_function("SendMail", sol::overload(
         [](TSPlayer& player, uint8 senderType, uint64 from, std::string const& subject, std::string const& body, uint32 money, uint32 cod, uint32 delay, sol::table items ) {
             TSArray<TSItem> tsitems;
@@ -324,4 +338,5 @@ void TSLua::load_player_methods(sol::state& state)
             return player.SendMail(senderType,from,subject,body);
         }
     ));
+
 }

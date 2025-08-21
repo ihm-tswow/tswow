@@ -24,6 +24,7 @@
 #include "TSEntity.h"
 #include "TSWorldEntity.h"
 #include "TSItem.h"
+#include "TSLua.h"
 #include <chrono>
 #include <vector>
 #include <list>
@@ -33,6 +34,7 @@ class TSCollisionEntry;
 class TSEntity;
 class TSUnit;
 class TSMainThreadContext;
+class TSGUID;
 
 #define CollisionCallback std::function<void(TSWorldObject,TSWorldObject,TSMutableNumber<uint32>,TSCollisionEntry*)>
 
@@ -48,6 +50,9 @@ public:
     operator TSWorldObject() const { return obj; }
     operator bool() const { return obj != nullptr; }
 
+    bool IsOutdoors();
+    TSNumber<uint32> GetLiquidStatus();
+
     TSWorldObject* operator->() { return this;}
     TSArray<TSCreature> GetCreaturesInRange(float range, uint32 entry, uint32 hostile, uint32 dead);
     TSArray<TSPlayer> GetPlayersInRange(float range, uint32 hostile, uint32 dead);
@@ -57,6 +62,8 @@ public:
     TSPlayer GetNearestPlayer(float range = 533.33333, uint32 hostile = 0, uint32 dead = 1);
     TSGameObject GetNearestGameObject(float range = 533.33333, uint32 entry = 0, uint32 hostile = 0);
     TSCreature GetNearestCreature(float range = 533.33333, uint32 entry = 0, uint32 hostile = 0, uint32 dead = 1);
+
+    bool IsBehind(TSWorldObject obj);
 
     TSNumber<float> GetDistance(TSWorldObject target);
     TSNumber<float> GetDistanceToPoint(float X, float Y, float Z);
@@ -112,6 +119,8 @@ public:
     bool IsNeutralToAll();
 
     TSNumber<uint32> CastSpell(TSWorldObject target, uint32 spell, bool triggered = false);
+    TSNumber<uint32> CastSpell(TSItem target, uint32 spell, bool triggered = false);
+
     TSNumber<uint32> CastSpellAoF(float _x, float _y, float _z, uint32 spell, bool triggered = false);
     TSNumber<uint32> CastCustomSpell(
           TSWorldObject target
@@ -124,11 +133,26 @@ public:
         , uint64 originalCaster = 0
     );
 
-    TSGameObject GetGameObject(uint64 guid);
-    TSCorpse GetCorpse(uint64 guid);
-    TSUnit GetUnit(uint64 guid);
-    TSCreature GetCreature(uint64 guid);
-    TSPlayer GetPlayer(uint64 guid);
+    TSNumber<uint32> CastCustomSpell(
+          TSItem target
+        , uint32 spell
+        , bool triggered = false
+        , int32 bp0 = 0
+        , int32 bp1 = 0
+        , int32 bp2 = 0
+        , TSItem castItem = TSItem()
+        , uint64 originalCaster = 0
+    );
+
+    TSGameObject GetGameObject(TSGUID guid);
+    TSGameObject GetGameObject(TSNumber<uint32> lowGuid);
+    TSCorpse GetCorpse(TSGUID guid);
+    TSCorpse GetCorpse(TSNumber<uint32> lowGuid);
+    TSUnit GetUnit(TSGUID guid);
+    TSCreature GetCreature(TSNumber<uint32> lowGuid);
+    TSCreature GetCreature(TSGUID guid);
+    TSPlayer GetPlayer(TSGUID guid);
+    TSPlayer GetPlayer(TSNumber<uint32> lowGuid);
 
     bool HasCollision(std::string const& id) ;
     void AddCollision(std::string const& id, float range, uint32_t minDelay, uint32_t maxHits, CollisionCallback callback);
@@ -144,6 +168,8 @@ public:
     void RemovedByGroup(TSWorldObjectGroup* group);
 
     void DoDelayed(std::function<void(TSWorldObject, TSMainThreadContext)> callback);
+    TSNumber<float> GetMapHeight(TSNumber<float> x, TSNumber<float> y, TSNumber<float> z);
+    TSNumber<float> GetFloorZ();
 private:
     friend class TSLua;
     void LDoDelayed(sol::protected_function callback);
@@ -151,6 +177,15 @@ private:
     TSLua::Array<TSUnit> LGetUnitsInRange(float range, uint32 hostile, uint32 dead);
     TSLua::Array<TSGameObject> LGetGameObjectsInRange(float range, uint32 entry, uint32 hostile);
     TSLua::Array<TSPlayer> LGetPlayersInRange(float range, uint32 hostile, uint32 dead);
+
+    TSGameObject LGetGameObject0(TSGUID guid);
+    TSGameObject LGetGameObject1(TSNumber<uint32> lowGuid);
+    TSCorpse LGetCorpse0(TSGUID guid);
+    TSCorpse LGetCorpse1(TSNumber<uint32> lowGuid);
+    TSCreature LGetCreature0(TSNumber<uint32> lowGuid);
+    TSCreature LGetCreature1(TSGUID guid);
+    TSPlayer LGetPlayer0(TSGUID guid);
+    TSPlayer LGetPlayer1(TSNumber<uint32> lowGuid);
 };
 
 class TC_GAME_API TSCollisionEntry {
@@ -195,3 +230,5 @@ class TC_GAME_API TSWorldObjectCollection
 };
 
 #define BROADCAST_PHASE_ID 0xffffff
+
+LUA_PTR_TYPE(TSWorldObject)

@@ -16,7 +16,8 @@
  */
 import { ipaths } from '../util/Paths';
 import { isWindows } from '../util/Platform';
-import { NODE_URL } from './BuildConfig';
+import { term } from '../util/Terminal';
+import { NODE_DOWNLOAD } from './BuildConfig';
 import { bpaths } from './CompilePaths';
 import { DownloadFile } from './Downloader';
 import ExtractZip = require('extract-zip')
@@ -29,7 +30,7 @@ export namespace NodeJS {
         }
 
         await DownloadFile(
-             NODE_URL
+             NODE_DOWNLOAD
            , bpaths.nodeArchive
         )
 
@@ -40,6 +41,14 @@ export namespace NodeJS {
             )
         }
 
-        bpaths.node.copy(ipaths.bin.node);
+        try {
+            bpaths.node.copy(ipaths.bin.node);
+        } catch (_) {
+            if (!ipaths.bin.node.exists()) {
+                term.error(`build`, `Could not copy node executable and it did not already exist. This is probably an issue.`)
+            } else {
+                term.log(`build`, `Could not copy node executable, tswow shell is probably running. This is probably not an issue.`)
+            }
+        }
     }
 }

@@ -19,16 +19,18 @@ import { BuildArgs, EmulatorCore } from "../data/Settings";
 import { DBC as _DBC, DBCLoader } from "./DBCFiles";
 import { LUAXML as _LUAXML } from "./luaxml/LUAXML";
 import { SQL as _SQL } from "./SQLFiles";
+import { AccessRequirement, AccessRequirementRegistry } from "./std/AccessRequirement/AccessRequirement";
 import { AchievementRegistry } from "./std/Achievement/Achievement";
 import { AchievementCategoryRegistry } from "./std/Achievement/AchievementCategory";
 import { AreaRegistry } from "./std/Area/Area";
 import { AreaGroupRegistry } from "./std/Area/AreaGroup";
 import { WMOAreaRegistry } from "./std/Area/WMOArea";
 import { AreaTriggerRegistry } from "./std/AreaTrigger/AreaTrigger";
+import { BattlegroundStatInfoRegistry } from "./std/Battleground/BattlegroundStatInfo";
 import { BroadcastTextRegistry } from "./std/BroadcastText/BroadcastText";
 import { CreatureTextRegistry } from "./std/BroadcastText/CreatureText";
 import { ClassRegistry } from "./std/Class/ClassRegistry";
-import { CreatureDisplayInfoRegistry } from "./std/Creature/CreatureDisplayInfo";
+import { CreatureDisplayInfoRegistry, CreatureModelRegistry } from "./std/Creature/CreatureDisplayInfo";
 import { CreatureInstanceRegistry, CreatureTemplateRegistry } from "./std/Creature/Creatures";
 import { CreatureSoundDataRegistry } from "./std/Creature/CreatureSoundData";
 import { FootstepTerrainLookupRegistry } from "./std/Creature/FootstepTerrainLookup";
@@ -66,6 +68,7 @@ import { MapRegistry } from "./std/Map/Maps";
 import { Colors } from "./std/Misc/Color";
 import { Compare } from "./std/Misc/Compare";
 import { Ids } from "./std/Misc/Ids";
+import { ParticleColorRegistry } from "./std/Misc/ParticleColor";
 import { CompanionRegistry } from "./std/PetsCollectibles/Companion";
 import { MountRegistry } from "./std/PetsCollectibles/Mount";
 import { ProfessionRegistry } from "./std/Profession/Professions";
@@ -80,8 +83,13 @@ import { SoundEntryRegistry } from "./std/Sound/SoundEntry";
 import { ZoneIntroMusicRegistry } from "./std/Sound/ZoneIntroMusic";
 import { ZoneMusicRegistry } from "./std/Sound/ZoneMusic";
 import { SpawnGroupRegistry } from "./std/SpawnGroup/SpawnGroupRegistry";
+import { SpellMissileRegistry } from "./std/Spell/SpellMissile";
+import { SpellRuneCostRegistry } from "./std/Spell/SpellPower";
+import { SpellRangeRegistry } from "./std/Spell/SpellRange";
 import { SpellRegistry } from "./std/Spell/Spells";
 import { SpellStackGroupRegistry } from "./std/Spell/SpellStackGroup";
+import { SpellVisualKitRegistry, SpellVisualRegistry } from "./std/Spell/SpellVisual";
+import { SpellVisualEffectRegistry } from "./std/Spell/SpellVisualEffect";
 import { SpellFocusRegistry } from "./std/SpellFocus/SpellFocus";
 import { Tags } from "./std/Tags/Tags";
 import { TalentTreeRegistry } from "./std/Talents/Talents";
@@ -106,9 +114,16 @@ import { WorldStateUIRegistry } from "./std/WorldState/WorldStateUI";
 
 export const std = {
     Spells : SpellRegistry,
+    SpellVisuals: SpellVisualRegistry,
+    SpellVisualKits: SpellVisualKitRegistry,
+    SpellVisualEffects: SpellVisualEffectRegistry,
+    SpellMissile: SpellMissileRegistry,
+    SpellRuneCost: SpellRuneCostRegistry,
+    SpellRange: SpellRangeRegistry,
     Languages : LanguageRegistry,
     Quests : QuestRegistry,
     Titles: TitleRegistry,
+    AccessRequirement: AccessRequirementRegistry,
     Achievements: AchievementRegistry,
     Loot: Loot,
     Items: ItemTemplateRegistry,
@@ -122,6 +137,7 @@ export const std = {
     CreatureOutfits: CreatureOutfitsRegistry,
     CreatureDisplayInfo: CreatureDisplayInfoRegistry,
     CreatureSoundData: CreatureSoundDataRegistry,
+    CreatureModels: CreatureModelRegistry,
     FootstepTerrainLookup: FootstepTerrainLookupRegistry,
     NPCSounds: NPCSoundsRegistry,
     GroundEffectDoodad: GroundEffectDoodadRegistry,
@@ -187,6 +203,7 @@ export const std = {
     AchievementCategory: AchievementCategoryRegistry,
     ItemSet: ItemSetRegistry,
     ItemDisplayInfo: ItemDisplayinfoRegistry,
+    ParticleColors: ParticleColorRegistry,
     ExtendedCost: ExtendedCostRegistry,
     EquipSkills: EquipSkills,
     SpellFocus: SpellFocusRegistry,
@@ -201,6 +218,7 @@ export const std = {
     TimedActionListBuilder: ActionListRegistry,
     isReadOnly: BuildArgs.READ_ONLY,
     DBC: _DBC,
+    BattlegroundStats: BattlegroundStatInfoRegistry,
     /** Used to load external dbc files for conversion purposes. */
     DBCLoader: DBCLoader,
     SQL: _SQL,
@@ -216,7 +234,6 @@ export const std = {
     },
     Core: EmulatorCore,
     isTrinityCore: EmulatorCore === 'trinitycore',
-    isAzerothCore: EmulatorCore === 'azerothcore'
 }
 
 export const wotlk = std;

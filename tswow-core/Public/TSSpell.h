@@ -22,6 +22,7 @@
 #include "TSPosition.h"
 #include "TSSpellInfo.h"
 #include "TSPosition.h"
+#include "TSLua.h"
 
 struct SpellModifier;
 class Spell;
@@ -29,6 +30,7 @@ struct SpellDestination;
 class SpellImplicitTargetInfo;
 class DispelInfo;
 class TSAura;
+class TSGUID;
 
 class TC_GAME_API TSSpell : public TSEntityProvider {
 public:
@@ -48,10 +50,18 @@ public:
     TSNumber<uint32> GetPowerCost();
     TSNumber<int32> GetDuration();
     TSNumber<uint32> GetGlyphSlot();
+    TSNumber<uint32> GetState();
     TSPosition GetTargetDest();
     TSObject  GetTarget();
     TSSpellInfo GetSpellInfo();
     TSNumber<uint32> GetTriggeredCastFlags();
+
+    int32 GetBasePoints(uint32 index);
+    uint32 GetMaxAffectedTargetsOverride();
+    float GetRadiusModOverride();
+    uint8 GetAuraStackAmountOverride();
+    float GetCritChanceOverride();
+
     bool IsTriggered();
     bool IsTriggeredByAura(uint32 aura);
     void SetAutoRepeat(bool repeat);
@@ -95,7 +105,7 @@ class TC_GAME_API TSSpellDestination
     TSNumber<float> GetOffsetZ();
     TSNumber<float> GetOffsetO();
 
-    TSNumber<uint64> GetTransportGUID();
+    TSGUID GetTransportGUID();
     void Relocate(float x, float y, float z, float o);
     void RelocateOffset(float x, float y, float z, float o);
 };
@@ -140,3 +150,9 @@ private:
     bool m_dependent;
     bool m_disabled;
 };
+
+LUA_PTR_TYPE(TSSpell)
+LUA_PTR_TYPE(TSSpellModifier)
+LUA_PTR_TYPE(TSSpellDestination)
+LUA_PTR_TYPE(TSSpellImplicitTargetInfo)
+LUA_PTR_TYPE(TSDispelInfo)

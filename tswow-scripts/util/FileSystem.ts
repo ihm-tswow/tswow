@@ -17,6 +17,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { FilePath, resfp, WDirectory } from './FileTree';
+import * as crypto from 'crypto';
 
 /**
  * Async file system access using promises
@@ -191,7 +192,7 @@ export namespace wfsa {
                     }
                 });
             } else if (await wfsa.isDirectory(fpath)) {
-                fs.rmdir(resfp(fpath), {recursive: true}, (err) => {
+                fs.rm(resfp(fpath), {recursive: true}, (err) => {
                     if (err) {
                         rej(err);
                     } else {
@@ -241,6 +242,29 @@ export namespace wfsa {
                 await iterate(file, cb);
             }
         }
+    }
+
+    export function hash(file: FilePath, algorithm: string = 'sha256', chunkSize: number = 1024 * 1024) {
+        return new Promise<string>((resolve, reject) => {
+            try {
+                const hashSum = crypto.createHash(algorithm);
+                const stream = fs.createReadStream(resfp(file), { highWaterMark: chunkSize });
+                
+                stream.on('data', (chunk) => {
+                    hashSum.update(chunk);
+                });
+                
+                stream.on('end', () => {
+                    resolve(hashSum.digest('hex'));
+                });
+                
+                stream.on('error', (error) => {
+                    reject(error);
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
     }
 }
 
@@ -354,7 +378,7 @@ export namespace wfs {
         if (fs.lstatSync(resfp(removedPath)).isFile()) {
             fs.unlinkSync(resfp(removedPath));
         } else {
-            fs.rmdirSync(resfp(removedPath), {recursive: true});
+            fs.rmSync(resfp(removedPath), {recursive: true});
         }
     }
 

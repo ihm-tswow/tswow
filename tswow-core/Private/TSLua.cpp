@@ -3,8 +3,12 @@
 #include "TSWorldObject.h"
 #include "TSGlobal.h"
 #include <regex>
+#if 0
 #include "document.hpp"
+#endif
 #include <fstream>
+#include <memory>
+#include <array>
     
 static std::map<std::filesystem::path, sol::table> modules;
 static std::vector<std::filesystem::path> file_stack;
@@ -20,9 +24,7 @@ sol::state& TSLua::GetState()
 
 static std::filesystem::path LibRoot()
 {
-#if AZEROTHCORE
-    return std::filesystem::path(sConfigMgr->GetOption<std::string>("DataDir", "./")) / "lib";
-#elif TRINITY
+#if TRINITY
     return std::filesystem::path(sConfigMgr->GetStringDefault("DataDir", "./")) / "lib";
 #endif
 }
@@ -110,6 +112,7 @@ void TSLua::load_bindings(sol::state& ztate)
     load_object_methods(state);
     load_world_object_methods(state);
     load_unit_methods(state);
+    load_guid_methods(state);
     load_map_methods(state);
     load_database_methods(state);
     load_faction_template_methods(state);
@@ -127,9 +130,7 @@ void TSLua::handle_error(sol::protected_function_result const& res)
     {
         return;
     }
-#if AZEROTHCORE
-    std::filesystem::path lua_path = std::filesystem::path(sConfigMgr->GetOption<std::string>("DataDir", "./")) / "lib" / "lua";
-#elif TRINITY
+#if TRINITY
     std::filesystem::path lua_path = std::filesystem::path(sConfigMgr->GetStringDefault("DataDir", "./")) / "lib" / "lua";
 #endif
     lua_path = std::filesystem::absolute(lua_path);
@@ -199,7 +200,8 @@ void TSLua::handle_error(sol::protected_function_result const& res)
             std::string str = buffer.str();
 
             // todo: sourcemap corrupts the heap, fix that before enabling this.
-            if (str.size() > 0 && false)
+#if 0
+            if (str.size() > 0)
             {
                 SourceMap::SrcMapDoc doc(str);
                 if (doc.map->getRowCount() < match.lineNo)
@@ -218,9 +220,10 @@ void TSLua::handle_error(sol::protected_function_result const& res)
                 std::string replacement = match.spaces + srcFile + ":" + std::to_string(srcLine);
                 what.replace(match.start, match.len, replacement);
             }
+#endif
         }
     }
-    TS_LOG_ERROR("tswow.lua", "%s", what.c_str());
+    TS_LOG_ERROR("tswow.lua", "{}", what.c_str());
 }
 
 void TSLua::execute_file(std::filesystem::path file)
@@ -410,4 +413,42 @@ void TSLua::Load()
             }
         }
     }
+}
+
+// the ugliest hack in in the history of emulation
+static constexpr size_t lua_garbage_page_size = 8192;
+using lua_garbage_page_type = std::array<char, lua_garbage_page_size>;
+size_t lua_garbage_page = 0;
+size_t lua_garbage_offset = lua_garbage_page_size; // saves an extra if statement below
+size_t lua_garbage_total = 0;
+static std::vector<std::unique_ptr<lua_garbage_page_type>> lua_garbage_stack;
+
+void* add_lua_garbage(size_t size)
+{
+    lua_garbage_total += size;
+    if (lua_garbage_offset + size >= lua_garbage_page_size)
+    {
+        lua_garbage_stack.push_back(std::make_unique<lua_garbage_page_type>());
+        lua_garbage_offset = 0;
+    }
+    char* c = lua_garbage_stack[lua_garbage_stack.size() - 1]->data() + lua_garbage_offset;
+    lua_garbage_offset += size;
+    return c;
+}
+
+void clear_lua_garbage()
+{
+    lua_garbage_stack.clear();
+    lua_garbage_page = 0;
+    lua_garbage_offset = lua_garbage_page_size;
+}
+
+size_t GetLuaGarbageCur()
+{
+    return lua_garbage_page * lua_garbage_page_size + lua_garbage_offset;
+}
+
+size_t GetLuaGarbageTotal()
+{
+    return lua_garbage_total;
 }

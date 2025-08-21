@@ -55,7 +55,7 @@ export class Connection {
     }
 
     private config() {
-        return Object.assign({}, this.cfg, {multipleStatements: true});
+        return Object.assign({}, this.cfg, {multipleStatements: true, enableKeepAlive: true});
     }
 
     /**
@@ -122,9 +122,11 @@ export class Connection {
             return this.status;
         }
 
+        term.debug('mysql', `Connecting to mysql server ${this.cfg.host}:${this.cfg.database}:${this.cfg.database}`)
         const creator = mysql_lib.createConnection(this.configWithoutDb());
 
         return this.status = new Promise<void>(async (res,rej)=>{
+            term.debug('mysql', `Creating database ${this.cfg.database}`)
             creator.query(
                   `CREATE DATABASE IF NOT EXISTS \`${this.cfg.database}\`;`
                 , (createErr)=>{
@@ -132,10 +134,12 @@ export class Connection {
                         return rej(createErr);
                     }
                     creator.end((endErr)=>{
+                        term.debug('mysql', `Closed initial connection, proceeding with connection pool`)
                         if(endErr) {
                             return rej(endErr);
                         }
-                        this.con = mysql_lib.createPool(this.config());
+                        // workaround: the version of mysql2 we use lists enableKeepAlive as a 'true' type instead of 'boolean'
+                        this.con = mysql_lib.createPool(this.config() as any);
                         this.status = undefined;
                         res();
                     });
@@ -144,6 +148,12 @@ export class Connection {
     }
 
     async disconnect() {
+        if (!this.con)
+        {
+            term.error('mysql', 'Tried to disconnect from an undefined connection');
+            return
+        }
+        term.debug('mysql', `Disconnecting from mysql server ${this.cfg.host}:${this.cfg.database}:${this.cfg.database}`)
         return new Promise<void>((res,rej)=>{
             this.con?.end((err)=>{
                 this.con = undefined;
@@ -158,6 +168,8 @@ export class Connection {
 
     async clean() {
         await this.disconnect();
+
+        term.debug('mysql', `Dropping database ${this.cfg.database}`)
         await new Promise<void>((res,rej)=>{
             let con = mysql_lib.createConnection(this.configWithoutDb());
             con.query(`DROP DATABASE IF EXISTS \`${this.config().database}\`;`,(err)=>{
@@ -244,6 +256,7 @@ export namespace mysql {
             + ` IDENTIFIED BY '${pass}';`
             + `\nGRANT ALL ON *.* TO '${user}'@'localhost';`
             + `\nALTER USER '${user}'@'localhost' IDENTIFIED BY '${pass}';`);
+            + "`\nSET @@GLOBAL.wait_timeout=2147483"
         await disconnect();
         mysqlprocess.start(ipaths.bin.mysql.mysqld_exe.get(),
             [
@@ -251,6 +264,7 @@ export namespace mysql {
                 '--log_syslog=0',
                 '--console',
                 '--wait-timeout=2147483',
+                '--wait_timeout=2147483',
                 `--init-file=${wfs.absPath(ipaths.bin.mysql_startup.get())}`,
                 `--datadir=${wfs.absPath(ipaths.coredata.database.get())}`
             ]);
@@ -415,9 +429,6 @@ export namespace mysql {
                  `No character tables found for ${connection.cfg.database},`
                + ` creating them...`);
             switch(core) {
-                case 'azerothcore':
-                    await connection.query(ipaths.bin.sql_ac.db_characters.readString());
-                    break;
                 case 'trinitycore':
                     await connection.query(ipaths.bin.sql.characters_create_sql.readString());
                     break;
@@ -427,9 +438,6 @@ export namespace mysql {
         switch(core) {
             case 'trinitycore':
                 await applySQLFiles(connection,'characters');
-                break;
-            case 'azerothcore':
-                // TODO: currently does not apply updates, this is wrong of course.
                 break;
         }
     }
@@ -448,6 +456,7 @@ export namespace mysql {
     }
 
     export async function initialize() {
+        term.debug('mysql', `Initializing MySQL`)
         if(hasOwnProcess()) {
             await startProcess();
 

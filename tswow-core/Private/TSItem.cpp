@@ -23,6 +23,7 @@
 #include "TSIncludes.h"
 #include "TSItem.h"
 #include "TSPlayer.h"
+#include "TSGUID.h"
 
 TSItem::TSItem(Item *item) : TSObject(item)
 {
@@ -182,7 +183,7 @@ bool TSItem::IsEquipped()
  */
 bool TSItem::HasQuest(uint32 quest)
 {
-#if defined TRINITY || AZEROTHCORE
+#if defined TRINITY
     return item->hasQuest(quest);
 #else
     return item->HasQuest(quest);
@@ -297,15 +298,12 @@ std::string TSItem::GetItemLink(uint8 locale)
         item->GetItemRandomPropertyId() << ":" << item->GetItemSuffixFactor() << ":" <<
         (uint32)item->GetOwner()->GetLevel() << "|h[" << name << "]|h|r";
     return oss.str();
-#elif AZEROTHCORE
-    TS_LOG_ERROR("tswow.api", "TSItem::GetItemLink not implemented for AzerothCore");
-    return "";
 #endif
 }
 
-TSNumber<uint64> TSItem::GetOwnerGUID()
+TSGUID TSItem::GetOwnerGUID()
 {
-    return TS_GUID(item->GetOwnerGUID());
+    return TSGUID(item->GetOwnerGUID());
 }
 
 /**
@@ -577,7 +575,7 @@ TSNumber<uint32> TSItem::GetBagSize()
 void TSItem::SetOwner(TSPlayer _player)
 {
     auto player = _player.player;
-#if defined TRINITY || AZEROTHCORE
+#if defined TRINITY
     item->SetOwnerGUID(player->TS_GET_GUID());
 #else
     item->SetOwnerGuid(player->TS_GET_GUID());
@@ -668,10 +666,6 @@ void TSItem::SaveToDB()
 #if defined TRINITY
     CharacterDatabaseTransaction trans = CharacterDatabaseTransaction(nullptr);
     item->SaveToDB(trans);
-#elif defined AZEROTHCORE
-    //SQLTransaction trans = SQLTransaction(NULL);
-    //item->SaveToDB(trans);
-    TS_LOG_ERROR("tswow.api", "TSItem::SaveToDB not implemented for AzerothCore");
 #else
     item->SaveToDB();
 #endif
@@ -687,4 +681,34 @@ TSItem CreateItem(uint32 entry, uint32 count)
 TSItemTemplate TSItem::GetTemplate()
 {
     return TSItemTemplate(item->GetTemplate());
+}
+
+void TSItem::SetRandomProperty(int32 propertyId)
+{
+    item->SetItemRandomProperties(propertyId);
+}
+
+void TSItem::UpdateItemSuffixFactor()
+{
+    item->UpdateItemSuffixFactor();
+}
+
+void TSItem::SetEnchantmentDuration(uint32 slot, uint32 duration)
+{
+    item->SetEnchantmentDuration(static_cast<EnchantmentSlot>(slot), duration, item->GetOwner());
+}
+
+void TSItem::SetEnchantmentCharges(uint32 slot, uint32 charges)
+{
+    item->SetEnchantmentCharges(static_cast<EnchantmentSlot>(slot), charges);
+}
+
+TSNumber<uint32> TSItem::GetEnchantmentDuration(uint32 slot)
+{
+    return item->GetEnchantmentDuration(static_cast<EnchantmentSlot>(slot));
+}
+
+TSNumber<uint32> TSItem::GetEnchantmentCharges(uint32 slot)
+{
+    return item->GetEnchantmentCharges(static_cast<EnchantmentSlot>(slot));
 }

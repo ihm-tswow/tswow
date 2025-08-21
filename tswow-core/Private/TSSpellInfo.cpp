@@ -30,7 +30,13 @@ TSSpellInfo::TSSpellInfo()
     , info(nullptr)
 {}
 
-TSNumber<uint32> TSSpellInfo::GetEntry()  {
+std::string TSSpellInfo::GetName(uint32 locale)
+{
+    return info->SpellName[locale];
+}
+
+TSNumber<uint32> TSSpellInfo::GetEntry()
+{
     return info->Id;
 }
 
@@ -237,9 +243,6 @@ TSNumber<uint32> TSSpellInfo::GetPriority()
 {
 #if TRINITY
     return info->Priority;
-#elif AZEROTHCORE
-    TS_LOG_ERROR("tswow.api", "TSSpellInfo::GetPriority not implemented for AzerothCore");
-    return 0;
 #endif
 }
 
@@ -380,8 +383,6 @@ TSNumber<uint32> TSSpellEffectInfo::GetEffectIndex()
 {
 #if TRINITY
     return static_cast<uint32>(m_info->EffectIndex);
-#elif AZEROTHCORE
-    return static_cast<uint32>(m_info->_effIndex);
 #endif
 }
 
@@ -471,16 +472,6 @@ TSNumber<int32> TSSpellEffectInfo::CalcValue(TSWorldObject caster)
 {
 #if TRINITY
     return m_info->CalcValue(caster.obj);
-#elif AZEROTHCORE
-    if (Unit* unit = caster.obj->ToUnit())
-    {
-        return m_info->CalcValue(unit);
-    }
-    else
-    {
-        TS_LOG_ERROR("tswow.api", "TSSpellEffectInfo::CalcValue not implemented for GameObjects on AzerothCore.");
-        return 0;
-    }
 #endif
 }
 
@@ -497,4 +488,34 @@ TSNumber<uint32> TSSpellInfo::GetTalentCost()
 TSNumber<uint32> GetTalentCost(uint32 entry)
 {
     return GetTalentSpellCost(entry);
+}
+
+bool TSSpellInfo::IsRanked()
+{
+    return info->IsRanked();
+}
+
+uint8 TSSpellInfo::GetRank()
+{
+    return info->GetRank();
+}
+
+TSSpellInfo TSSpellInfo::GetFirstRankSpell()
+{
+    return info->GetFirstRankSpell();
+}
+
+TSSpellInfo TSSpellInfo::GetLastRankSpell()
+{
+    return info->GetLastRankSpell();
+}
+
+TSSpellInfo TSSpellInfo::GetNextRankSpell()
+{
+    return info->GetNextRankSpell();
+}
+
+TSSpellInfo TSSpellInfo::GetPrevRankSpell()
+{
+    return info->GetPrevRankSpell();
 }

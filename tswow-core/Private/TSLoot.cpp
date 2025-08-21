@@ -17,12 +17,12 @@
 #include "TSLoot.h"
 #if TRINITY
 #include "Loot.h"
-#elif AZEROTHCORE
-#include "LootMgr.h"
 #endif
 #include "LootMgr.h"
 #include "ObjectGuid.h"
 #include "TSMath.h"
+#include "TSGUID.h"
+#include "TSItemTemplate.h"
 
 TSLoot::TSLoot(Loot *loot)
 {
@@ -81,14 +81,14 @@ TSNumber<uint32> TSLoot::GetLootType()
     return loot->loot_type;
 }
 
-void TSLoot::SetLootOwner(uint64 owner)
+void TSLoot::SetLootOwner(TSGUID const& owner)
 {
-    loot->lootOwnerGUID = ObjectGuid(owner);
+    loot->lootOwnerGUID = ObjectGuid(owner.asGUID());
 }
 
-TSNumber<uint64> TSLoot::GetLootOwner()
+TSGUID TSLoot::GetLootOwnerGUID()
 {
-    return TS_GUID(loot->lootOwnerGUID);
+    return TSGUID(loot->lootOwnerGUID);
 }
 
 TSLootItem::TSLootItem(LootItem* item)
@@ -191,9 +191,6 @@ bool TSLoot::GetGeneratesNormally()
 {
 #if TRINITY
     return loot->generateNormally;
-#elif AZEROTHCORE
-    TS_LOG_ERROR("tswow.api", "TSLoot::GetGeneratesNormally not implemented for AzerothCore");
-    return true;
 #endif
 }
 
@@ -201,8 +198,6 @@ void TSLoot::SetGeneratesNormally(bool generatesNormally)
 {
 #if TRINITY
     loot->generateNormally = generatesNormally;
-#elif AZEROTHCORE
-    TS_LOG_ERROR("tswow.api", "TSLoot::SetGeneratesNormally not implemented for AzerothCore");
 #endif
 }
 
@@ -233,3 +228,7 @@ void TSLootItem::SetFakeRandomPropertyID(uint32 fakePropertyId)
     item->fakeRandomPropertyId = fakePropertyId;
 }
 
+TSItemTemplate TSLootItem::GetTemplate()
+{
+    return GetItemTemplate(GetItemID());
+}

@@ -16,10 +16,13 @@
  */
 #pragma once
 
+#include "TSLua.h"
 #include "TSLoot.h"
 #include "TSMain.h"
 #include "TSClasses.h"
 #include "TSWorldObject.h"
+
+class TSGUID;
 
 class TC_GAME_API TSCorpse : public TSWorldObject {
 public:
@@ -28,10 +31,12 @@ public:
     TSCorpse(Corpse* corpse);
     TSCorpse();
     TSCorpse* operator->() { return this;}
-    TSNumber<uint64> GetOwnerGUID();
+    TSGUID GetOwnerGUID();
     TSNumber<uint32> GetGhostTime();
     TSNumber<uint32> GetType();
     TSLoot GetLoot();
     void ResetGhostTime();
     void SaveToDB();
 };
+
+LUA_PTR_TYPE(TSCorpse)

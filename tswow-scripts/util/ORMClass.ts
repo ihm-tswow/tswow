@@ -80,6 +80,16 @@ export const DBFiledTypes = {
           'text'
         , 'GetString'
         , 'SetString'
+    ),
+    TSGUID: new DBFieldType(
+          'bigint(20)'
+        , 'GetGUIDNumber'
+        , 'SetGUIDNumber'
+    ),
+    'TSArray<uint8>': new DBFieldType(
+          'BLOB'
+        , 'GetBinary'
+        , 'SetBinary'
     )
 } as const
 

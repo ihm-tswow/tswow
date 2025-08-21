@@ -23,6 +23,8 @@
 #include "TSCreature.h"
 #include "TSBattleground.h"
 #include "TSInstance.h"
+#include "TSGUID.h"
+#include "TSWeather.h"
 
 #include "ObjectMgr.h"
 #include "CreatureData.h"
@@ -66,7 +68,7 @@ bool TSMap::IsArena()
  */
 bool TSMap::IsBG()
 {
-#if defined TRINITY || AZEROTHCORE
+#if defined TRINITY
     return map->IsBattleground();
 #else
     return map->IsBattleGround();
@@ -97,8 +99,6 @@ bool TSMap::IsEmpty()
 {
 #if TRINITY
     return map->isEmpty();
-#elif AZEROTHCORE
-    return map->IsEmpty();
 #endif
 }
 
@@ -217,32 +217,32 @@ TSNumber<uint32> TSMap::GetAreaID(float x,float y,float z,float phasemask)
  *
  * @param uint64 guid
  */
-TSWorldObject  TSMap::GetWorldObject(uint64 guid)
+TSWorldObject TSMap::GetWorldObject(TSGUID guid)
 {
 
-#if defined TRINITY || AZEROTHCORE
-    switch (GUID_HIPART(guid))
+#if defined TRINITY
+    switch (GUID_HIPART(guid.asGUID()))
     {
         case HIGHGUID_PLAYER:
-            return TSWorldObject(eObjectAccessor()GetPlayer(map, ObjectGuid(guid)));
+            return TSWorldObject(eObjectAccessor()GetPlayer(map, guid.asGUID()));
             break;
         case HIGHGUID_TRANSPORT:
         case HIGHGUID_MO_TRANSPORT:
         case HIGHGUID_GAMEOBJECT:
-             return TSWorldObject(map->GetGameObject(ObjectGuid(guid)));
+             return TSWorldObject(map->GetGameObject(guid.asGUID()));
             break;
         case HIGHGUID_VEHICLE:
         case HIGHGUID_UNIT:
-             return TSWorldObject(map->GetCreature(ObjectGuid(guid)));
+             return TSWorldObject(map->GetCreature(guid.asGUID()));
             break;
         case HIGHGUID_PET:
-             return TSWorldObject(map->GetPet(ObjectGuid(guid)));
+             return TSWorldObject(map->GetPet(guid.asGUID()));
             break;
         case HIGHGUID_DYNAMICOBJECT:
-             return TSWorldObject(map->GetDynamicObject(ObjectGuid(guid)));
+             return TSWorldObject(map->GetDynamicObject(guid.asGUID()));
             break;
         case HIGHGUID_CORPSE:
-             return TSWorldObject(map->GetCorpse(ObjectGuid(guid)));
+             return TSWorldObject(map->GetCorpse(guid.asGUID()));
             break;
         default:
             return TSWorldObject(nullptr);
@@ -276,16 +276,25 @@ void TSMap::SetWeather(uint32 zoneId,uint32 weatherType,float grade)
 #if TRINITY
     if (Weather * weather = map->GetOrGenerateZoneDefaultWeather(zoneId))
         weather->SetWeather((WeatherType)weatherType, grade);
-#elif AZEROTHCORE
-    Weather* weather = WeatherMgr::FindWeather(zoneId);
-    if (!weather)
-        weather = WeatherMgr::AddWeather(zoneId);
-    if (weather)
-        weather->SetWeather((WeatherType)weatherType, grade);
 #else
     if (Weather::IsValidWeatherType(weatherType))
         map->SetWeather(zoneId, (WeatherType)weatherType, grade, false);
 #endif
+}
+
+/**
+ * Returns [Weather] for a zone or generates one if none exists.
+ *
+ * @param uint32 zoneId : The ID of the zone.
+ * @return [Weather] The weather object of the zone
+ */
+TSWeather TSMap::GetOrGenerateZoneDefaultWeather(uint32 zoneId)
+{
+    Weather* weather = map->GetOrGenerateZoneDefaultWeather(zoneId);
+    if (weather)
+        return TSWeather(weather);
+    else
+        return TSWeather(nullptr);
 }
 
 /**
@@ -309,7 +318,7 @@ TSArray<TSPlayer> TSMap::GetPlayers(uint32 team)
     tbl.vec->reserve(players.getSize());
     for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
     {
-#if defined TRINITY || AZEROTHCORE
+#if defined TRINITY
         Player* player = itr->GetSource();
 #else
         Player* player = itr->getSource();
@@ -386,10 +395,6 @@ TSCreature TSMap::GetCreatureByDBGUID(uint32 dbGuid)
 {
 #if TRINITY
     return TSCreature(map->GetCreatureBySpawnId(dbGuid));
-#elif AZEROTHCORE
-    auto store = map->GetCreatureBySpawnIdStore();
-    auto itr = store.find(dbGuid);
-    return itr != store.end() ? TSCreature(itr->second) : TSCreature(nullptr);
 #endif
 }
 
@@ -397,10 +402,6 @@ TSGameObject TSMap::GetGameObjectByDBGUID(uint32 dbGuid)
 {
 #if TRINITY
     return TSGameObject(map->GetGameObjectBySpawnId(dbGuid));
-#elif AZEROTHCORE
-    auto store = map->GetGameObjectBySpawnIdStore();
-    auto itr = store.find(dbGuid);
-    return itr != store.end() ? TSGameObject(itr->second) : TSGameObject(nullptr);
 #endif
 }
 
@@ -417,9 +418,6 @@ TSGameObject TSMap::SpawnGameObject(uint32 entry, float x, float y, float z, flo
 #if TRINITY
     QuaternionData rot = QuaternionData::fromEulerAnglesZYX(o, 0.f, 0.f);
     if (!object->Create(guidLow, objectInfo->entry, map, phase, Position(x, y, z, o), rot, 0, GO_STATE_READY))
-#elif AZEROTHCORE
-    G3D::Quat rot(G3D::Matrix3::fromEulerAnglesZYX(o, 0, 0));
-    if (!object->Create(guidLow, objectInfo->entry, map, phase, x, y, z, o, rot, 0, GO_STATE_READY))
 #endif
     {
         delete object;
@@ -453,24 +451,37 @@ void TSMap::DoDelayed(std::function<void(TSMap, TSMainThreadContext)> callback)
 {
 #if TRINITY
     map->m_delayCallbacks.push_back(callback);
-#elif AZEROTHCORE
-    TS_LOG_ERROR("tswow.api", "TSMap::DoDelayed not implemented for AzerothCore");
 #endif
 }
 
-TSCreature TSMap::GetCreature(uint64 guid)
+TSCreature TSMap::GetCreature(TSNumber<uint32> guid)
 {
-    return TSCreature(map->GetCreature(ObjectGuid(guid)));
+    return GetCreature(TSGUID(guid));
 }
 
-TSGameObject TSMap::GetGameObject(uint64 guid)
+TSGameObject TSMap::GetGameObject(TSNumber<uint32> guid)
 {
-    return TSGameObject(map->GetGameObject(ObjectGuid(guid)));
+    return GetGameObject(TSGUID(guid));
 }
 
-TSPlayer TSMap::GetPlayer(uint64 guid)
+TSPlayer TSMap::GetPlayer(TSNumber<uint32> guid)
 {
-    return TSPlayer(ObjectAccessor::GetPlayer(map, ObjectGuid(guid)));
+    return GetPlayer(TSGUID(guid));
+}
+
+TSCreature TSMap::GetCreature(TSGUID guid)
+{
+    return TSCreature(map->GetCreature(guid.asGUID()));
+}
+
+TSGameObject TSMap::GetGameObject(TSGUID guid)
+{
+    return TSGameObject(map->GetGameObject(guid.asGUID()));
+}
+
+TSPlayer TSMap::GetPlayer(TSGUID guid)
+{
+    return TSPlayer(ObjectAccessor::GetPlayer(map, guid.asGUID()));
 }
 
 bool TSMap::IsInLineOfSight(float x1,float y1,float z1, float x2, float y2, float z2, uint32 phasemask, uint32 checks, uint32 ignoreFlags)
@@ -482,8 +493,6 @@ void TSMap::LDoDelayed(sol::function callback)
 {
 #if TRINITY
     map->m_delayLuaCallbacks.push_back(callback);
-#elif AZEROTHCORE
-    TS_LOG_ERROR("tswow.api", "TSMap::DoDelayed not implemented for AzerothCore");
 #endif
 }
 
@@ -517,4 +526,61 @@ TSLua::Array<TSCreature> TSMap::LGetCreatures0(uint32 entry)
 TSLua::Array<TSCreature> TSMap::LGetCreatures1()
 {
     return sol::as_table(*GetCreatures().vec);
+}
+
+
+TSPlayer TSMap::LGetPlayer0(TSGUID guid)
+{
+    return GetPlayer(guid);
+}
+
+TSPlayer TSMap::LGetPlayer1(TSNumber<uint32> guid)
+{
+    return GetPlayer(guid);
+}
+
+TSCreature TSMap::LGetCreature0(TSGUID guid)
+{
+    return GetCreature(guid);
+}
+
+TSCreature TSMap::LGetCreature1(TSNumber<uint32> guid)
+{
+    return GetCreature(guid);
+}
+
+TSGameObject TSMap::LGetGameObject0(TSGUID guid)
+{
+    return GetGameObject(guid);
+}
+
+TSGameObject TSMap::LGetGameObject1(TSNumber<uint32> guid)
+{
+    return GetGameObject(guid);
+}
+
+TC_GAME_API TSInstance ToInstance(TSMap map)
+{
+    if (map.map && map->IsInstance())
+    {
+        InstanceMap* instance = map.map->ToInstanceMap();
+        return TSInstance(instance, instance->GetInstanceScript());
+    }
+    else
+    {
+        return TSInstance(nullptr,nullptr);
+    }
+}
+
+TC_GAME_API TSBattleground ToBattleground(TSMap map)
+{
+    if (map.map && map->IsBG())
+    {
+        BattlegroundMap* bg = map.map->ToBattlegroundMap();
+        return TSBattleground(bg, bg->GetBG());
+    }
+    else
+    {
+        return TSBattleground(nullptr, nullptr);
+    }
 }

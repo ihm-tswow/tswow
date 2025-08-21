@@ -147,6 +147,11 @@ export class CellSystem<T> {
         obj[key] = this.objectify();
     }
 
+    stringify(options?: ObjectifyOptions): string
+    {
+        return JSON.stringify(this.objectify(options))
+    }
+
     objectify(options?: ObjectifyOptions): any {
         return Objects.objectifyObj(this, options);
     }
@@ -181,6 +186,7 @@ export abstract class LocSystem<T> extends CellSystem<T> {
     get ptBR() { return this.lang('ptBR'); }
     get itIT() { return this.lang('itIT'); }
     get Unk() { return this.lang('Unk'); }
+    get Unk2() { return this.lang('Unk2'); }
 
     clear() {
         Languages.forEach(x=>{
@@ -217,6 +223,10 @@ export class WrappedLoc<T> extends LocSystem<T> {
 
     objectify(options?: ObjectifyOptions) {
         return this.wrapped.objectify(options);
+    }
+
+    stringify(options?: ObjectifyOptions) {
+        return JSON.stringify(this.objectify(options))
     }
 }
 

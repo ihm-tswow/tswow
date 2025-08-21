@@ -20,6 +20,7 @@
 #include "TSMain.h"
 #include "TSClasses.h"
 #include "TSArray.h"
+#include "TSLua.h"
 
 #include <sol/sol.hpp>
 #include <vector>
@@ -31,11 +32,12 @@ class TSSpell;
 class TSSpellInfo;
 class TSHealInfo;
 class TSDamageInfo;
+class TSGUID;
 
 class TC_GAME_API TSAuraEffect : public TSEntityProvider {
     TS_CLASS_DECLARATION(TSAuraEffect,AuraEffect,aura)
     TSUnit GetCaster();
-    TSNumber<uint64> GetCasterGUID();
+    TSGUID GetCasterGUID();
     TSAura GetAura();
     TSSpellInfo GetSpellInfo();
     TSNumber<uint32> GetID();
@@ -80,7 +82,7 @@ public:
     operator bool() const { return aura != nullptr; }
     bool operator==(TSAura const& rhs) { return aura == rhs.aura; }
     TSUnit GetCaster();
-    TSNumber<uint64> GetCasterGUID();
+    TSGUID GetCasterGUID();
     TSNumber<uint32> GetCasterLevel();
     TSNumber<int32> GetDuration();
     TSNumber<uint32> GetAuraID();
@@ -114,3 +116,8 @@ class TC_GAME_API TSProcEventInfo
     TSHealInfo GetHealInfo();
     TSSpell GetSpell();
 };
+
+LUA_PTR_TYPE(TSAuraEffect)
+LUA_PTR_TYPE(TSAuraApplication)
+LUA_PTR_TYPE(TSAura)
+LUA_PTR_TYPE(TSProcEventInfo)

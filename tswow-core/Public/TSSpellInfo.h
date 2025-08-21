@@ -17,6 +17,7 @@
 #pragma once
 #include "TSClasses.h"
 #include "TSEntity.h"
+#include "TSLua.h"
 
 class TC_GAME_API TSSpellEffectInfo
 {
@@ -63,6 +64,7 @@ public:
     bool operator==(TSSpellInfo const& rhs) { return info == rhs.info; }
     bool IsNull() { return info == nullptr; }
 
+    std::string GetName(uint32 locale);
     TSNumber<uint32> GetEntry();
     TSNumber<uint32> GetSchool();
     TSNumber<uint32> GetBaseLevel();
@@ -131,8 +133,16 @@ public:
     TSNumber<uint32> GetTalentCost();
     TSSpellEffectInfo GetEffect(uint32 index);
     TSEntity * GetData();
+    bool IsRanked();
+    uint8 GetRank();
+    TSSpellInfo GetFirstRankSpell();
+    TSSpellInfo GetLastRankSpell();
+    TSSpellInfo GetNextRankSpell();
+    TSSpellInfo GetPrevRankSpell();
 };
 
 TC_GAME_API TSSpellInfo GetSpellInfo(uint32 entry);
 TC_GAME_API TSNumber<uint32> GetTalentCost(uint32 entry);
 
+LUA_PTR_TYPE(TSSpellInfo)
+LUA_PTR_TYPE(TSSpellEffectInfo)

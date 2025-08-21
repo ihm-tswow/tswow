@@ -18,6 +18,7 @@ process.argv.push('--ipaths=./')
 import { commands } from "../util/Commands";
 import { wfs } from "../util/FileSystem";
 import { ipaths } from "../util/Paths";
+import { isWindows } from "../util/Platform";
 import { term } from "../util/Terminal";
 import { Timer } from "../util/Timer";
 import { Addon } from "./Addon";
@@ -39,64 +40,14 @@ import { PositionsFile } from "./PositionsFile";
 import { Realm } from "./Realm";
 import { Snippets } from "./Snippets";
 import { applyTSTLHack } from "./TSTLHack";
+import * as path from 'path'
 
-export async function main() {
-    term.log('mysql',`TSWoW Starting Up`)
+const timer = Timer.start();
 
-    let wd = wfs.absPath('./')
-
-    if(wd.includes(' ')) {
-        term.error(
-              'misc'
-            , `Invalid installation path: ${wd}\n`
-            + `You cannot have spaces in the path leading up to your tswow installation,`
-            + `please move it and try again.\n`
-        )
-        process.exit(0)
-    }
-
-    const timer = Timer.start();
-
-    if(!wfs.exists(NodeConfig.DefaultClient) && !process.argv.includes('server-mode')) {
-        term.error(
-              'client'
-            , `Invalid client: ${NodeConfig.DefaultClient} does not exist.\n\n`
-            + `TSWoW requires a valid client to be able to function,`
-            + ` please enter one out in node.conf`
-        )
-        process.exit(0)
-    }
-
-    if(NodeConfig.DefaultClient.includes(' ')) {
-        term.error(
-            'client'
-          , `Invalid client path: ${wd}\n`
-          + `You cannot have spaces in the path leading up to your client,`
-          + `please move it and try again.\n`
-        )
-        process.exit(0)
-    }
-
-    applyTSTLHack();
-    Module.cacheEndpoints(true);
-    await mysql.initialize();
-    await Dataset.initialize()
-    await Client.initialize();
-    await Module.initialize();
-    await Snippets.initialize();
-    await AuthServer.initializeDatabase()
-    await Realm.initialize()
-    await AuthServer.initializeServer()
-    await Datascripts.initialize();
-    await Livescripts.initialize();
-    await Addon.initialize();
-    await MapData.initialize();
-    await Package.initialize();
-    await Crashes.initialize();
-    await PositionsFile.initialize();
-    await MiscCommands.initialize();
-    await Launcher.initialize();
-    Module.cacheEndpoints(false);
+// can be called from multiple places
+async function initTerminal()
+{
+    term.debug('misc', `Initializing terminal`)
     await term.Initialize(
         ipaths.coredata.terminal_history_txt.get(),
         NodeConfig.TerminalHistory,
@@ -113,5 +64,110 @@ export async function main() {
         commands.sendCommand(input);
         Module.cacheEndpoints(false);
     });
+}
+
+export async function main() {
+    term.log('mysql',`TSWoW Starting Up`)
+
+    if(process.argv.includes('terminal-only'))
+    {
+        return initTerminal();
+    }
+
+    let wd = wfs.absPath('./')
+
+    if(wd.includes(' ')) {
+        term.error(
+              'misc'
+            , `Invalid installation path: ${wd}\n`
+            + `You cannot have spaces in the path leading up to your tswow installation,`
+            + `please move it and try again.\n`
+        )
+        process.exit(0)
+    }
+
+    const isServerMode = process.argv.includes('server-mode');
+
+    let resolvedNodeConfigPath = path.resolve(NodeConfig.DefaultClient);
+    let resolvedCwdPath = path.resolve(process.cwd());
+
+    if (isWindows() && resolvedNodeConfigPath.charAt(0).toLowerCase() != resolvedCwdPath.charAt(0).toLowerCase() && !isServerMode)
+    {
+        term.error(
+            'client'
+          , `Invalid client: ${resolvedNodeConfigPath} is on different drive from TSWoW installation (${resolvedCwdPath}).\n\n`
+          + `TSWoW must be installed on the same drive as the client,`
+          + ` please move TSWoW and the WoW client to the same drive.`
+      )
+      process.exit(0)
+    }
+
+    if(!wfs.exists(NodeConfig.DefaultClient) && !isServerMode) {
+        term.error(
+              'client'
+            , `Invalid client: ${NodeConfig.DefaultClient} does not exist.\n\n`
+            + `TSWoW requires a valid client to be able to function,`
+            + ` please enter one out in node.conf`
+        )
+        process.exit(0)
+    }
+
+    if(NodeConfig.DefaultClient.includes(' ') && !isServerMode) {
+        term.error(
+            'client'
+          , `Invalid client path: ${wd}\n`
+          + `You cannot have spaces in the path leading up to your client,`
+          + `please move it and try again.\n`
+        )
+        process.exit(0)
+    }
+
+    applyTSTLHack();
+    Module.cacheEndpoints(true);
+    await mysql.initialize();
+    if(process.argv.includes('mysql-only'))
+    {
+        return initTerminal();
+    }
+    if (process.argv.includes('auth-only'))
+    {
+        await AuthServer.initializeDatabase()
+        await AuthServer.initializeServer()
+        return initTerminal();
+    }
+    await Dataset.initialize()
+    await Client.initialize();
+    await Module.initialize();
+    await Snippets.initialize();
+    await AuthServer.initializeDatabase()
+    await Realm.initialize()
+    await AuthServer.initializeServer()
+    if (process.argv.includes('realm-only'))
+    {
+        return initTerminal();
+    }
+    await Datascripts.initialize();
+    if (process.argv.includes('data-only'))
+    {
+        return initTerminal();
+    }
+    await Livescripts.initialize();
+    if (process.argv.includes('scripts-only'))
+    {
+        return initTerminal();
+    }
+    await Addon.initialize();
+    if (process.argv.includes('addon-only'))
+    {
+        return initTerminal();
+    }
+    await MapData.initialize();
+    await Package.initialize();
+    await Crashes.initialize();
+    await PositionsFile.initialize();
+    await MiscCommands.initialize();
+    await Launcher.initialize();
+    Module.cacheEndpoints(false);
+    return initTerminal();
 }
 main();

@@ -5,6 +5,8 @@
 #include "TSGameObject.h"
 #include "TSCorpse.h"
 #include "TSLuaVarargs.h"
+#include "TSItem.h"
+#include "TSGUID.h"
 
 void TSLua::load_world_object_methods(sol::state& state)
 {
@@ -21,6 +23,7 @@ void TSLua::load_world_object_methods(sol::state& state)
     LUA_FIELD_OVERLOAD_RET_0_4(ts_worldobject, TSWorldObject, GetNearestCreature, float, uint32, uint32, uint32);
 
     LUA_FIELD(ts_worldobject, TSWorldObject, GetDistance);
+    LUA_FIELD(ts_worldobject, TSWorldObject, IsOutdoors);
     LUA_FIELD(ts_worldobject, TSWorldObject, GetDistanceToPoint);
     LUA_FIELD(ts_worldobject, TSWorldObject, GetDistance2d);
     LUA_FIELD(ts_worldobject, TSWorldObject, GetDistanceToPoint2d);
@@ -61,11 +64,14 @@ void TSLua::load_world_object_methods(sol::state& state)
     LUA_FIELD(ts_worldobject, TSWorldObject, IsFriendlyToPlayers);
     LUA_FIELD(ts_worldobject, TSWorldObject, IsHostileToPlayers);
     LUA_FIELD(ts_worldobject, TSWorldObject, IsNeutralToAll);
-    LUA_FIELD(ts_worldobject, TSWorldObject, GetGameObject);
-    LUA_FIELD(ts_worldobject, TSWorldObject, GetCorpse);
+    LUA_FIELD(ts_worldobject, TSWorldObject, IsBehind);
+
+    ts_worldobject.set_function("GetCreature", sol::overload(&TSWorldObject::LGetCreature0, &TSWorldObject::LGetCreature1));
+    ts_worldobject.set_function("GetGameObject", sol::overload(&TSWorldObject::LGetGameObject0, &TSWorldObject::LGetGameObject1));
+    ts_worldobject.set_function("GetPlayer", sol::overload(&TSWorldObject::LGetPlayer0, &TSWorldObject::LGetPlayer1));
+    ts_worldobject.set_function("GetCorpse", sol::overload(&TSWorldObject::LGetCorpse0, &TSWorldObject::LGetCorpse1));
+
     LUA_FIELD(ts_worldobject, TSWorldObject, GetUnit);
-    LUA_FIELD(ts_worldobject, TSWorldObject, GetCreature);
-    LUA_FIELD(ts_worldobject, TSWorldObject, GetPlayer);
     LUA_FIELD(ts_worldobject, TSWorldObject, HasCollision);
     LUA_FIELD(ts_worldobject, TSWorldObject, AddCollision);
     LUA_FIELD(ts_worldobject, TSWorldObject, GetCollision);
@@ -74,8 +80,45 @@ void TSLua::load_world_object_methods(sol::state& state)
     LUA_FIELD(ts_worldobject, TSWorldObject, IsActive);
     ts_worldobject.set_function("DoDelayed", &TSWorldObject::LDoDelayed);
 
-    LUA_FIELD_OVERLOAD_2_6(ts_worldobject, TSWorldObject, CastCustomSpell, TSWorldObject, uint32, bool, int32, int32, int32, TSItem, uint64);
-    LUA_FIELD_OVERLOAD_2_1(ts_worldobject, TSWorldObject, CastSpell, TSWorldObject, uint32, bool);
+    ts_worldobject.set_function("CastSpell", sol::overload(
+        [](TSWorldObject& caster, TSWorldObject target, uint32 spell, bool triggered) { return caster.CastSpell(target, spell, triggered); },
+        [](TSWorldObject& caster, TSWorldObject target, uint32 spell) { return caster.CastSpell(target, spell); },
+        [](TSWorldObject& caster, TSItem target, uint32 spell, bool triggered) { return caster.CastSpell(target, spell, triggered); },
+        [](TSWorldObject& caster, TSItem target, uint32 spell) { return caster.CastSpell(target, spell); }
+    ));
+
+    ts_worldobject.set_function("CastCustomSpell", sol::overload(
+        [](TSWorldObject& caster, TSWorldObject target, uint32 spell, bool triggered, int32 bp0, int32 bp1, int32 bp2, TSItem castItem, uint64 originalCaster)
+            { return caster.CastCustomSpell(target, spell, triggered, bp0, bp1, bp2, castItem, originalCaster); },
+        [](TSWorldObject& caster, TSWorldObject target, uint32 spell, bool triggered, int32 bp0, int32 bp1, int32 bp2, TSItem castItem)
+            { return caster.CastCustomSpell(target, spell, triggered, bp0, bp1, bp2, castItem); },
+        [](TSWorldObject& caster, TSWorldObject target, uint32 spell, bool triggered, int32 bp0, int32 bp1, int32 bp2)
+            { return caster.CastCustomSpell(target, spell, triggered, bp0, bp1, bp2); },
+        [](TSWorldObject& caster, TSWorldObject target, uint32 spell, bool triggered, int32 bp0, int32 bp1)
+            { return caster.CastCustomSpell(target, spell, triggered, bp0, bp1); },
+        [](TSWorldObject& caster, TSWorldObject target, uint32 spell, bool triggered, int32 bp0)
+            { return caster.CastCustomSpell(target, spell, triggered, bp0); },
+        [](TSWorldObject& caster, TSWorldObject target, uint32 spell, bool triggered)
+            { return caster.CastCustomSpell(target, spell, triggered); },
+        [](TSWorldObject& caster, TSWorldObject target, uint32 spell)
+            { return caster.CastCustomSpell(target, spell); },
+
+        [](TSWorldObject& caster, TSItem target, uint32 spell, bool triggered, int32 bp0, int32 bp1, int32 bp2, TSItem castItem, uint64 originalCaster)
+            { return caster.CastCustomSpell(target, spell, triggered, bp0, bp1, bp2, castItem, originalCaster); },
+        [](TSWorldObject& caster, TSItem target, uint32 spell, bool triggered, int32 bp0, int32 bp1, int32 bp2, TSItem castItem)
+            { return caster.CastCustomSpell(target, spell, triggered, bp0, bp1, bp2, castItem); },
+        [](TSWorldObject& caster, TSItem target, uint32 spell, bool triggered, int32 bp0, int32 bp1, int32 bp2)
+            { return caster.CastCustomSpell(target, spell, triggered, bp0, bp1, bp2); },
+        [](TSWorldObject& caster, TSItem target, uint32 spell, bool triggered, int32 bp0, int32 bp1)
+            { return caster.CastCustomSpell(target, spell, triggered, bp0, bp1); },
+        [](TSWorldObject& caster, TSItem target, uint32 spell, bool triggered, int32 bp0)
+            { return caster.CastCustomSpell(target, spell, triggered, bp0); },
+        [](TSWorldObject& caster, TSItem target, uint32 spell, bool triggered)
+            { return caster.CastCustomSpell(target, spell, triggered); },
+        [](TSWorldObject& caster, TSItem target, uint32 spell)
+            { return caster.CastCustomSpell(target, spell); }
+    ));
+
     LUA_FIELD_OVERLOAD_4_1(ts_worldobject, TSWorldObject, CastSpellAoF, float, float, float, uint32, bool);
 
     auto ts_mutable_worldobject = state.new_usertype<TSMutableWorldObject>("TSMutableWorldObject");

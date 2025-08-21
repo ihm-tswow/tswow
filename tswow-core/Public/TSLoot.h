@@ -18,12 +18,16 @@
 
 #include "TSMain.h"
 #include "TSArray.h"
+#include "TSLua.h"
 
 #include <sol/sol.hpp>
 
 #include <functional>
 
+class TSGUID;
+class TSItemTemplate;
 struct LootItem;
+
 struct TC_GAME_API TSLootItem {
     LootItem* item;
     TSLootItem(LootItem* item);
@@ -45,6 +49,8 @@ struct TC_GAME_API TSLootItem {
     TSNumber<uint32> GetFakeRandomPropertyID();
     void SetFakeRandomSuffix(uint32 fakeRandomSuffix);
     void SetFakeRandomPropertyID(uint32 fakePropertyId);
+
+    TSItemTemplate GetTemplate();
 };
 
 struct Loot;
@@ -70,8 +76,8 @@ class TC_GAME_API TSLoot {
         TSNumber<uint32> GetMoney();
         void SetMoney(uint32 money);
 
-        TSNumber<uint64> GetLootOwner();
-        void SetLootOwner(uint64 owner);
+        TSGUID GetLootOwnerGUID();
+        void SetLootOwner(TSGUID const& guid);
 
         TSNumber<uint32> GetItemCount();
         TSNumber<uint32> GetQuestItemCount();
@@ -87,3 +93,6 @@ private:
     void LFilter(sol::protected_function predicate);
     friend class TSLua;
 };
+
+LUA_PTR_TYPE(TSLootItem)
+LUA_PTR_TYPE(TSLoot)

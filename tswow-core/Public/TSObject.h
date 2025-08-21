@@ -35,6 +35,7 @@
 #include "TSMain.h"
 #include "TSClasses.h"
 #include "TSEntity.h"
+#include "TSLua.h"
 
 class TSPlayer;
 class TSUnit;
@@ -42,6 +43,7 @@ class TSGameObject;
 class TSWorldObject;
 class TSCreature;
 class TSCorpse;
+class TSGUID;
 
 class TC_GAME_API TSObject: public TSEntityProvider {
 public:
@@ -55,7 +57,7 @@ public:
     bool IsInWorld();
     TSNumber<float> GetScale();
     TSNumber<uint32> GetEntry();
-    TSNumber<uint64> GetGUID();
+    TSGUID GetGUID();
     TSNumber<uint32> GetGUIDLow();
     TSNumber<uint8> GetTypeID();
     void SetScale(float size);
@@ -97,3 +99,13 @@ public:
 
     bool operator==(TSObject& rhs);
 };
+
+TC_GAME_API TSItem ToItem(TSObject);
+TC_GAME_API TSWorldObject ToWorldObject(TSObject);
+TC_GAME_API TSUnit ToUnit(TSObject);
+TC_GAME_API TSCreature ToCreature(TSObject);
+TC_GAME_API TSPlayer ToPlayer(TSObject);
+TC_GAME_API TSGameObject ToGameObject(TSObject);
+TC_GAME_API TSCorpse ToCorpse(TSObject);
+
+LUA_PTR_TYPE(TSObject)

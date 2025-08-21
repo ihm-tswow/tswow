@@ -2,9 +2,16 @@ import * as chokidar from "chokidar";
 import * as fs from "fs";
 import { WFile } from "../util/FileTree";
 import { ipaths } from "../util/Paths";
+import { term } from "../util/Terminal";
 
 export class Crashes {
     static initialize() {
+        if (process.argv.includes('nowatch') || process.argv.includes('nowatch-strict'))
+        {
+            return
+        }
+
+        term.debug('misc', `Initializing crashlog handler`)
         chokidar.watch(ipaths.modules.abs().get(),{
             ignored: [
                 /build$/
@@ -47,11 +54,11 @@ export class Crashes {
                     }
                     try {
                         fs.copyFileSync(file.abs().get(),ipaths.Crashes.join(
-                            `${ctime.getFullYear()}-${ctime.getMonth()}-${ctime.getDate()}.`
+                            `${ctime.getFullYear()}-${ctime.getMonth()+1}-${ctime.getDate()+1}.`
                             + `${ctime.getHours()}-${ctime.getMinutes()}-${ctime.getSeconds()}.`
                             + `${type}-${realmPath}.${file.extension()}`).get())
                         file.remove()
-                        clearInterval()
+                        clearInterval(int)
                     } catch(err) {}
                 },500)
             },2000)
